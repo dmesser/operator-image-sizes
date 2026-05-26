@@ -73,142 +73,174 @@ def get_chartjs():
 HTML_TEMPLATE = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Operator Related Image Sizes Explorer</title>
 <style>
-:root {
-  --bg: #ffffff; --bg-elevated: #f8f9fa; --bg-card: #ffffff;
-  --text-primary: #1a1a2e; --text-secondary: #4a4a6a; --text-tertiary: #8888a8;
-  --accent: #2563eb; --accent-hover: #1d4ed8;
-  --border: #e2e8f0; --border-light: #f1f5f9;
-  --stat-bg: #f1f5f9;
-  --danger: #dc2626; --info: #2563eb; --success: #16a34a; --warning: #d97706;
-  --table-stripe: #f8fafc; --table-hover: #f1f5f9;
-  --chart-1: #3b82f6; --chart-2: #ef4444; --chart-3: #22c55e;
-  --chart-4: #f59e0b; --chart-5: #8b5cf6; --chart-6: #06b6d4;
-  --chart-7: #ec4899; --chart-8: #14b8a6;
-  --chart-grid: rgba(0,0,0,0.06); --chart-text: #64748b;
-  --scrollbar-thumb: #cbd5e1; --scrollbar-track: #f1f5f9;
+:root, [data-theme="light"] {
+  --bg: #ffffff;
+  --fg: #1a1a2e;
+  --card-bg: #f8f9fa;
+  --card-bg-alt: #eef0f3;
+  --border: #d1d5db;
+  --accent: #2563eb;
+  --accent-fg: #ffffff;
+  --muted: #6b7280;
+  --table-stripe: #f3f4f6;
+  --summary-hover: #e5e7eb;
+  --tab-inactive-bg: #f3f4f6;
+  --tab-inactive-fg: #374151;
+  --input-bg: #ffffff;
+  --shadow: rgba(0,0,0,0.06);
+  --danger: #b91c1c;
+  --info: #1d4ed8;
+  --chart-grid: rgba(0,0,0,0.06);
+  --chart-text: #6b7280;
 }
 [data-theme="dark"] {
-  --bg: #0f1117; --bg-elevated: #1a1b26; --bg-card: #1a1b26;
-  --text-primary: #e2e8f0; --text-secondary: #94a3b8; --text-tertiary: #64748b;
-  --accent: #60a5fa; --accent-hover: #93bbfd;
-  --border: #2d2d3f; --border-light: #23233a;
-  --stat-bg: #1e1e30;
-  --danger: #f87171; --info: #60a5fa; --success: #4ade80; --warning: #fbbf24;
-  --table-stripe: #16162a; --table-hover: #1e1e35;
-  --chart-grid: rgba(255,255,255,0.08); --chart-text: #94a3b8;
-  --scrollbar-thumb: #3d3d5c; --scrollbar-track: #1a1b26;
+  --bg: #1a1a2e;
+  --fg: #e8e8f0;
+  --card-bg: #252540;
+  --card-bg-alt: #2d2d4a;
+  --border: #3d3d5c;
+  --accent: #60a5fa;
+  --accent-fg: #1a1a2e;
+  --muted: #9ca3af;
+  --table-stripe: #2a2a45;
+  --summary-hover: #353555;
+  --tab-inactive-bg: #2d2d4a;
+  --tab-inactive-fg: #c8c8d8;
+  --input-bg: #252540;
+  --shadow: rgba(0,0,0,0.3);
+  --danger: #fca5a5;
+  --info: #93c5fd;
+  --chart-grid: rgba(255,255,255,0.08);
+  --chart-text: #9ca3af;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0f1117; --bg-elevated: #1a1b26; --bg-card: #1a1b26;
-    --text-primary: #e2e8f0; --text-secondary: #94a3b8; --text-tertiary: #64748b;
-    --accent: #60a5fa; --accent-hover: #93bbfd;
-    --border: #2d2d3f; --border-light: #23233a;
-    --stat-bg: #1e1e30;
-    --danger: #f87171; --info: #60a5fa; --success: #4ade80; --warning: #fbbf24;
-    --table-stripe: #16162a; --table-hover: #1e1e35;
-    --chart-grid: rgba(255,255,255,0.08); --chart-text: #94a3b8;
-    --scrollbar-thumb: #3d3d5c; --scrollbar-track: #1a1b26;
-  }
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-  background: var(--bg); color: var(--text-primary);
-  line-height: 1.5; -webkit-font-smoothing: antialiased;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg); color: var(--fg);
+  line-height: 1.5; font-size: 14px;
+  transition: background 0.2s, color 0.2s;
 }
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: var(--scrollbar-track); }
-::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
-.app { max-width: 1400px; margin: 0 auto; padding: 24px 32px; }
-.top-bar {
-  display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
-  padding-bottom: 16px; border-bottom: 1px solid var(--border);
+.container { max-width: 1100px; margin: 0 auto; padding: 1rem 1.25rem 3rem; }
+header {
+  display: flex; flex-wrap: wrap; align-items: flex-start;
+  justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem;
 }
-.top-bar h1 { font-size: 20px; font-weight: 700; flex: 1; }
-.top-bar .meta { color: var(--text-tertiary); font-size: 13px; white-space: nowrap; }
+header h1 { margin: 0 0 0.25rem; font-size: 1.5rem; font-weight: 700; }
+header .meta { color: var(--muted); font-size: 0.85rem; }
+.header-actions { display: flex; align-items: center; gap: 0.75rem; }
 .gh-link {
-  display: inline-flex; align-items: center; color: var(--text-secondary);
-  transition: color 0.15s;
+  color: var(--fg); display: flex; opacity: 0.7; transition: opacity 0.15s;
+  text-decoration: none;
 }
-.gh-link:hover { color: var(--text-primary); }
-.gh-link svg { width: 22px; height: 22px; fill: currentColor; }
-.theme-btn {
-  background: none; border: 1px solid var(--border); border-radius: 6px;
-  color: var(--text-secondary); cursor: pointer; padding: 4px 8px;
-  font-size: 16px; line-height: 1; transition: all 0.15s;
+.gh-link:hover { opacity: 1; }
+.theme-switcher {
+  display: flex; gap: 0; border: 1px solid var(--border);
+  border-radius: 6px; overflow: hidden; flex-shrink: 0;
 }
-.theme-btn:hover { border-color: var(--accent); color: var(--accent); }
-.stats-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px; margin-bottom: 20px;
+.theme-switcher button {
+  padding: 0.35rem 0.65rem; border: none; background: var(--tab-inactive-bg);
+  color: var(--tab-inactive-fg); cursor: pointer; font-size: 0.75rem; font-family: inherit;
 }
-.stat-card {
-  background: var(--stat-bg); border-radius: 8px; padding: 14px 16px;
-  border: 1px solid var(--border-light);
+.theme-switcher button.active { background: var(--accent); color: var(--accent-fg); }
+.theme-switcher button:not(:last-child) { border-right: 1px solid var(--border); }
+.stat-strip {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem; margin-bottom: 1.25rem;
 }
-.stat-value { font-size: 22px; font-weight: 700; line-height: 1.2; }
-.stat-value.danger { color: var(--danger); }
-.stat-value.info { color: var(--info); }
-.stat-label { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
-.search-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-.search-input {
-  padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px;
-  background: var(--bg-elevated); color: var(--text-primary); font-size: 14px;
-  width: 300px; outline: none; transition: border-color 0.15s;
+.stat-box {
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 0.85rem 1rem; text-align: center;
 }
-.search-input:focus { border-color: var(--accent); }
-.search-input::placeholder { color: var(--text-tertiary); }
-.section-title { font-size: 16px; font-weight: 600; margin: 20px 0 6px; }
-.section-sub { font-size: 12px; color: var(--text-tertiary); margin-bottom: 10px; }
+.stat-box .num {
+  font-size: 1.75rem; font-weight: 700; font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, 'Cascadia Code', monospace;
+}
+.stat-box .num.danger { color: var(--danger); }
+.stat-box .num.info { color: var(--info); }
+.stat-box .lbl { font-size: 0.75rem; color: var(--muted); margin-top: 0.15rem; }
+.filter-row {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 0.75rem; margin-bottom: 0.75rem;
+}
+.filter-row input {
+  flex: 1; min-width: 180px; padding: 0.45rem 0.65rem;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--input-bg); color: var(--fg);
+  font-size: 0.85rem; font-family: inherit;
+}
+.filter-row input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.section-title { font-size: 0.95rem; font-weight: 600; margin: 1.25rem 0 0.35rem; }
+.section-sub { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.5rem; }
+.table-scroll { overflow-x: auto; }
 .table-wrap {
-  border: 1px solid var(--border); border-radius: 8px; overflow: auto;
-  max-height: 600px; margin-bottom: 20px;
+  border: 1px solid var(--border); border-radius: 8px;
+  overflow: auto; margin-bottom: 0.75rem; background: var(--card-bg);
 }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
 thead { position: sticky; top: 0; z-index: 1; }
 th {
-  background: var(--bg-elevated); padding: 8px 12px; text-align: left;
-  font-weight: 600; font-size: 12px; color: var(--text-secondary);
+  background: var(--card-bg); padding: 0.4rem 0.55rem; text-align: left;
+  font-weight: 600; font-size: 0.75rem; color: var(--muted);
   border-bottom: 1px solid var(--border); white-space: nowrap;
   cursor: pointer; user-select: none; transition: color 0.15s;
 }
 th:hover { color: var(--accent); }
 th.sorted { color: var(--accent); }
-th .arrow { font-size: 10px; margin-left: 4px; }
-th.r, td.r { text-align: right; }
-td {
-  padding: 6px 12px; border-bottom: 1px solid var(--border-light);
-  white-space: nowrap;
-}
-tr:nth-child(even) td { background: var(--table-stripe); }
-tr:hover td { background: var(--table-hover); }
+th.num, td.num { text-align: right; font-family: ui-monospace, 'Cascadia Code', monospace; font-variant-numeric: tabular-nums; }
+td { padding: 0.4rem 0.55rem; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+tbody tr:nth-child(even) { background: var(--table-stripe); }
+tbody tr:hover { background: var(--summary-hover); }
 .link {
   color: var(--accent); cursor: pointer; font-weight: 600;
   text-decoration: none; transition: color 0.15s;
 }
-.link:hover { color: var(--accent-hover); text-decoration: underline; }
+.link:hover { text-decoration: underline; }
 .btn-back {
-  display: inline-flex; align-items: center; gap: 4px; background: none;
-  border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary);
-  cursor: pointer; padding: 5px 12px; font-size: 13px; transition: all 0.15s;
-  margin-bottom: 16px;
+  display: inline-flex; align-items: center; gap: 0.3rem; background: none;
+  border: 1px solid var(--border); border-radius: 6px; color: var(--muted);
+  cursor: pointer; padding: 0.35rem 0.75rem; font-size: 0.82rem;
+  font-family: inherit; transition: all 0.15s; margin-bottom: 0.75rem;
 }
 .btn-back:hover { border-color: var(--accent); color: var(--accent); }
-.chart-wrap {
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
-  padding: 16px; margin-bottom: 20px; position: relative;
+.chart-card {
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1rem; margin-bottom: 0.75rem;
 }
-.chart-row { display: flex; gap: 16px; margin-bottom: 20px; }
+.chart-row { display: flex; gap: 0.75rem; margin-bottom: 0.75rem; }
 .chart-row > div { flex: 1; }
+@media (max-width: 700px) {
+  header h1 { font-size: 1.2rem; }
+  .stat-box .num { font-size: 1.4rem; }
+  th, td { padding: 0.3rem 0.35rem; font-size: 0.75rem; }
+  .chart-row { flex-direction: column; }
+}
 </style>
 </head>
 <body>
-<div class="app" id="app"></div>
+<div class="container" id="root">
+  <header>
+    <div>
+      <h1>Operator Related Image Sizes Explorer</h1>
+      <div class="meta" id="header-meta"></div>
+    </div>
+    <div class="header-actions">
+      <a class="gh-link" id="gh-link" href="#" title="View source on GitHub" style="display:none">
+        <svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+      </a>
+      <div class="theme-switcher" id="theme-switcher">
+        <button data-theme="system" class="active">System</button>
+        <button data-theme="light">Light</button>
+        <button data-theme="dark">Dark</button>
+      </div>
+    </div>
+  </header>
+  <div id="app"></div>
+</div>
 
 <script>
 %%CHARTJS%%
@@ -217,6 +249,36 @@ tr:hover td { background: var(--table-hover); }
 <script>
 const RAW = %%DATA%%;
 const REPO_URL = "%%REPO_URL%%";
+
+// --- Boot ---
+if (REPO_URL) {
+  const ghLink = document.getElementById('gh-link');
+  ghLink.href = REPO_URL;
+  ghLink.style.display = 'flex';
+}
+document.getElementById('header-meta').textContent =
+  'Red Hat operator catalog v4.21 \u00b7 ' + RAW.pkgs.length + ' operators';
+
+// --- Theme ---
+function applyTheme(mode) {
+  localStorage.setItem('img-report-theme', mode);
+  document.querySelectorAll('#theme-switcher button').forEach(b =>
+    b.classList.toggle('active', b.dataset.theme === mode));
+  if (mode === 'system') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', mode);
+  render();
+}
+function initTheme() {
+  const saved = localStorage.getItem('img-report-theme') || 'system';
+  applyTheme(saved);
+  document.getElementById('theme-switcher').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-theme]');
+    if (btn) applyTheme(btn.dataset.theme);
+  });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if ((localStorage.getItem('img-report-theme') || 'system') === 'system') render();
+  });
+}
 
 // --- Utilities ---
 function fmtSize(b) {
@@ -229,7 +291,7 @@ function fmtSize(b) {
   }
   return v.toFixed(1)+' PB';
 }
-
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function cmpSemver(a, b) {
   const re = /(\d+)/g;
   const pa = a.match(re) || [], pb = b.match(re) || [];
@@ -240,31 +302,9 @@ function cmpSemver(a, b) {
   return a.localeCompare(b);
 }
 
-function el(tag, attrs, ...children) {
-  const e = document.createElement(tag);
-  if (attrs) for (const [k, v] of Object.entries(attrs)) {
-    if (k === 'className') e.className = v;
-    else if (k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), v);
-    else if (k === 'style' && typeof v === 'object')
-      Object.assign(e.style, v);
-    else e.setAttribute(k, v);
-  }
-  for (const c of children) {
-    if (c == null) continue;
-    if (typeof c === 'string' || typeof c === 'number') e.appendChild(document.createTextNode(c));
-    else if (Array.isArray(c)) c.forEach(x => x && e.appendChild(x));
-    else e.appendChild(c);
-  }
-  return e;
-}
-
 const CHART_COLORS = ['#3b82f6','#ef4444','#22c55e','#f59e0b','#8b5cf6','#06b6d4','#ec4899','#14b8a6'];
 let activeCharts = [];
-
-function destroyCharts() {
-  activeCharts.forEach(c => c.destroy());
-  activeCharts = [];
-}
+function destroyCharts() { activeCharts.forEach(c => c.destroy()); activeCharts = []; }
 
 function isDark() {
   const t = document.documentElement.getAttribute('data-theme');
@@ -273,46 +313,32 @@ function isDark() {
   return window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
-function chartDefaults() {
-  const dark = isDark();
-  return {
-    color: dark ? '#94a3b8' : '#64748b',
-    borderColor: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-  };
+function chartOpts(cd) {
+  return { color: isDark() ? '#9ca3af' : '#6b7280', border: isDark() ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' };
 }
 
 function makeLineChart(canvas, categories, seriesData, opts = {}) {
-  const cd = chartDefaults();
+  const cd = chartOpts();
   const chart = new Chart(canvas, {
     type: 'line',
     data: {
       labels: categories,
       datasets: seriesData.map((s, i) => ({
-        label: s.name,
-        data: s.data,
+        label: s.name, data: s.data,
         borderColor: CHART_COLORS[i % CHART_COLORS.length],
         backgroundColor: CHART_COLORS[i % CHART_COLORS.length] + '22',
-        fill: opts.fill || false,
-        tension: 0.3,
-        pointRadius: categories.length > 20 ? 2 : 4,
-        pointHoverRadius: 6,
-        borderWidth: 2,
+        fill: opts.fill || false, tension: 0.3,
+        pointRadius: categories.length > 20 ? 2 : 4, pointHoverRadius: 6, borderWidth: 2,
       })),
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       animation: { duration: 600, easing: 'easeOutQuart' },
-      plugins: {
-        legend: { display: seriesData.length > 1, labels: { color: cd.color, font: { size: 12 } } },
-        tooltip: { mode: 'index', intersect: false },
-      },
+      plugins: { legend: { display: seriesData.length > 1, labels: { color: cd.color, font: { size: 11 } } },
+        tooltip: { mode: 'index', intersect: false } },
       scales: {
-        x: { ticks: { color: cd.color, font: { size: 11 }, maxRotation: 45 }, grid: { color: cd.borderColor } },
-        y: {
-          ticks: { color: cd.color, font: { size: 11 },
-            callback: v => v + (opts.suffix || '') },
-          grid: { color: cd.borderColor },
-        },
+        x: { ticks: { color: cd.color, font: { size: 10 }, maxRotation: 45 }, grid: { color: cd.border } },
+        y: { ticks: { color: cd.color, font: { size: 10 }, callback: v => v + (opts.suffix || '') }, grid: { color: cd.border } },
       },
     },
   });
@@ -321,41 +347,32 @@ function makeLineChart(canvas, categories, seriesData, opts = {}) {
 }
 
 function makeBarChart(canvas, categories, seriesData, opts = {}) {
-  const cd = chartDefaults();
+  const cd = chartOpts();
   const chart = new Chart(canvas, {
     type: 'bar',
     data: {
       labels: categories,
       datasets: seriesData.map((s, i) => ({
-        label: s.name,
-        data: s.data,
+        label: s.name, data: s.data,
         backgroundColor: CHART_COLORS[i % CHART_COLORS.length] + (opts.stacked ? 'cc' : 'aa'),
-        borderColor: CHART_COLORS[i % CHART_COLORS.length],
-        borderWidth: 1,
-        borderRadius: 3,
+        borderColor: CHART_COLORS[i % CHART_COLORS.length], borderWidth: 1, borderRadius: 3,
       })),
     },
     options: {
       indexAxis: opts.horizontal ? 'y' : 'x',
       responsive: true, maintainAspectRatio: false,
       animation: { duration: 600, easing: 'easeOutQuart' },
-      plugins: {
-        legend: { display: seriesData.length > 1, labels: { color: cd.color, font: { size: 12 } } },
-        tooltip: { mode: 'index', intersect: false },
-      },
+      plugins: { legend: { display: seriesData.length > 1, labels: { color: cd.color, font: { size: 11 } } },
+        tooltip: { mode: 'index', intersect: false } },
       scales: {
-        x: {
-          stacked: opts.stacked || false,
-          ticks: { color: cd.color, font: { size: 11 }, maxRotation: 45,
+        x: { stacked: opts.stacked || false,
+          ticks: { color: cd.color, font: { size: 10 }, maxRotation: 45,
             callback: opts.horizontal ? (v => v + (opts.suffix || '')) : undefined },
-          grid: { color: cd.borderColor },
-        },
-        y: {
-          stacked: opts.stacked || false,
-          ticks: { color: cd.color, font: { size: 11 },
+          grid: { color: cd.border } },
+        y: { stacked: opts.stacked || false,
+          ticks: { color: cd.color, font: { size: 10 },
             callback: opts.horizontal ? undefined : (v => v + (opts.suffix || '')) },
-          grid: { color: cd.borderColor },
-        },
+          grid: { color: cd.border } },
       },
     },
   });
@@ -371,9 +388,7 @@ let state = { view: 'summary', pkgName: null, verIdx: null, search: '',
 };
 
 function navigate(view, pkgName, verIdx) {
-  state.view = view;
-  state.pkgName = pkgName;
-  state.verIdx = verIdx;
+  state.view = view; state.pkgName = pkgName; state.verIdx = verIdx;
   render();
 }
 
@@ -384,23 +399,21 @@ function toggleSort(key, col) {
   render();
 }
 
-function sortHeader(label, sortKey, col, align) {
+function sortTh(label, sortKey, col, isNum) {
   const s = state[sortKey];
   const active = s.col === col;
   const arrow = active ? (s.dir === 'asc' ? ' \u25B2' : ' \u25BC') : '';
-  const th = el('th', {
-    className: (active ? 'sorted' : '') + (align === 'right' ? ' r' : ''),
-    onClick: () => toggleSort(sortKey, col),
-  }, label + arrow);
-  return th;
+  return `<th class="${active ? 'sorted' : ''}${isNum ? ' num' : ''}" onclick="toggleSort('${sortKey}','${col}')">${esc(label)}${arrow}</th>`;
+}
+
+// --- Render helpers ---
+function statBox(val, lbl, tone) {
+  return `<div class="stat-box"><div class="num${tone ? ' '+tone : ''}">${esc(String(val))}</div><div class="lbl">${esc(lbl)}</div></div>`;
 }
 
 // --- Views ---
 function renderSummary() {
   destroyCharts();
-  const app = document.getElementById('app');
-  app.innerHTML = '';
-
   let list = [...RAW.pkgs];
   if (state.search) {
     const q = state.search.toLowerCase();
@@ -416,70 +429,51 @@ function renderSummary() {
 
   const totalLatest = RAW.pkgs.reduce((s, p) => s + p.lt, 0);
   const totalImages = RAW.pkgs.reduce((s, p) => s + p.li, 0);
-  const biggest = RAW.pkgs.reduce((max, p) => p.lt > max.lt ? p : max, RAW.pkgs[0]);
+  const biggest = RAW.pkgs.reduce((mx, p) => p.lt > mx.lt ? p : mx, RAW.pkgs[0]);
 
-  app.appendChild(el('div', { className: 'stats-grid' },
-    statCard(RAW.pkgs.length, 'Operators'),
-    statCard(fmtSize(totalLatest), 'Total latest (all arch)'),
-    statCard(fmtSize(biggest.lt), 'Largest: ' + biggest.n, 'danger'),
-    statCard(totalImages, 'Total images (latest)'),
-  ));
+  let html = `<div class="stat-strip">
+    ${statBox(RAW.pkgs.length, 'Operators')}
+    ${statBox(fmtSize(totalLatest), 'Total latest (all arch)')}
+    ${statBox(fmtSize(biggest.lt), 'Largest: ' + biggest.n, 'danger')}
+    ${statBox(totalImages, 'Total images (latest)')}
+  </div>
+  <div class="filter-row">
+    <input type="text" id="pkg-filter" placeholder="Filter operators\u2026" value="${esc(state.search)}" autocomplete="off">
+    <span style="color:var(--muted);font-size:0.82rem">${list.length} of ${RAW.pkgs.length} operators</span>
+  </div>
+  <div class="table-wrap" style="max-height:600px">
+    <table><thead><tr>
+      <th class="num">#</th>
+      ${sortTh('Operator', 'sumSort', 'name', false)}
+      ${sortTh('Versions', 'sumSort', 'vc', true)}
+      ${sortTh('Avg total (all arch)', 'sumSort', 'avg', true)}
+      ${sortTh('Latest total (all arch)', 'sumSort', 'latest', true)}
+      ${sortTh('Images (latest)', 'sumSort', 'imgs', true)}
+    </tr></thead><tbody>`;
 
-  const searchInput = el('input', {
-    className: 'search-input', type: 'search',
-    placeholder: 'Filter operators...', value: state.search,
-    onInput: (e) => { state.search = e.target.value; render(); },
-  });
-  app.appendChild(el('div', { className: 'search-row' }, searchInput));
-
-  const thead = el('tr', null,
-    el('th', { className: 'r' }, '#'),
-    sortHeader('Operator', 'sumSort', 'name', 'left'),
-    sortHeader('Versions', 'sumSort', 'vc', 'right'),
-    sortHeader('Avg total (all arch)', 'sumSort', 'avg', 'right'),
-    sortHeader('Latest total (all arch)', 'sumSort', 'latest', 'right'),
-    sortHeader('Images (latest)', 'sumSort', 'imgs', 'right'),
-  );
-
-  const tbody = el('tbody');
   list.forEach((p, i) => {
-    const link = el('a', { className: 'link', onClick: () => navigate('package', p.n) }, p.n);
-    tbody.appendChild(el('tr', null,
-      el('td', { className: 'r' }, (i + 1).toString()),
-      el('td', null, link),
-      el('td', { className: 'r' }, p.vc.toString()),
-      el('td', { className: 'r' }, fmtSize(p.avg)),
-      el('td', { className: 'r' }, fmtSize(p.lt)),
-      el('td', { className: 'r' }, p.li.toString()),
-    ));
+    html += `<tr>
+      <td class="num">${i + 1}</td>
+      <td><a class="link" onclick="navigate('package','${esc(p.n)}')">${esc(p.n)}</a></td>
+      <td class="num">${p.vc}</td><td class="num">${fmtSize(p.avg)}</td>
+      <td class="num">${fmtSize(p.lt)}</td><td class="num">${p.li}</td>
+    </tr>`;
   });
+  html += '</tbody></table></div>';
+  document.getElementById('app').innerHTML = html;
 
-  app.appendChild(el('div', { className: 'table-wrap' },
-    el('table', null, el('thead', null, thead), tbody)
-  ));
+  document.getElementById('pkg-filter').addEventListener('input', e => {
+    state.search = e.target.value; render();
+  });
 }
 
 function renderPackage() {
   destroyCharts();
-  const app = document.getElementById('app');
-  app.innerHTML = '';
-
   const pkg = RAW.pkgs.find(p => p.n === state.pkgName);
   if (!pkg) { navigate('summary'); return; }
   const versions = pkg.vs;
+  const allArchs = [...new Set(versions.flatMap(v => v.ar))].sort();
 
-  app.appendChild(el('button', { className: 'btn-back', onClick: () => navigate('summary') },
-    '\u2190 Back to list'));
-  app.appendChild(el('h1', { style: { fontSize: '20px', fontWeight: 700, marginBottom: '16px' } }, pkg.n));
-
-  app.appendChild(el('div', { className: 'stats-grid' },
-    statCard(pkg.vc, 'Versions'),
-    statCard(fmtSize(pkg.avg), 'Avg total size'),
-    statCard(fmtSize(pkg.lt), 'Latest: ' + pkg.lv, 'info'),
-    statCard(pkg.li, 'Images (latest)'),
-  ));
-
-  // Line chart: total over releases
   const chartVsRaw = [...versions].reverse();
   let chartVs = chartVsRaw;
   if (chartVs.length > 30) {
@@ -487,39 +481,6 @@ function renderPackage() {
     chartVs = chartVs.filter((_, i) => i % step === 0 || i === chartVs.length - 1);
   }
 
-  app.appendChild(el('div', { className: 'section-title' }, 'Total size over releases (all architectures combined)'));
-  app.appendChild(el('div', { className: 'section-sub' }, 'Source: fbc-size-analyzer, compressed layer sizes'));
-  const lineWrap = el('div', { className: 'chart-wrap' }, el('canvas', { id: 'lineChart', style: { height: '280px' } }));
-  app.appendChild(lineWrap);
-  requestAnimationFrame(() => {
-    const c = document.getElementById('lineChart');
-    if (c) makeLineChart(c, chartVs.map(v => v.v),
-      [{ name: 'Total all-arch (GB)', data: chartVs.map(v => +(v.ts / 1073741824).toFixed(1)) }],
-      { fill: true, suffix: ' GB' });
-  });
-
-  // Stacked bar: per-arch
-  const allArchs = [...new Set(versions.flatMap(v => v.ar))].sort();
-  if (allArchs.length > 1) {
-    app.appendChild(el('div', { className: 'section-title' }, 'Per-architecture breakdown over releases'));
-    app.appendChild(el('div', { className: 'section-sub' }, 'Stacked bar: each color is one architecture'));
-    const barWrap = el('div', { className: 'chart-wrap' }, el('canvas', { id: 'stackedBar', style: { height: '280px' } }));
-    app.appendChild(barWrap);
-    requestAnimationFrame(() => {
-      const c = document.getElementById('stackedBar');
-      if (c) makeBarChart(c, chartVs.map(v => v.v),
-        allArchs.map(arch => ({
-          name: arch,
-          data: chartVs.map(v => {
-            const idx = v.ar.indexOf(arch);
-            return idx >= 0 ? +(v.as[idx] / 1073741824).toFixed(1) : 0;
-          }),
-        })),
-        { stacked: true, suffix: ' GB' });
-    });
-  }
-
-  // Versions table
   const indexed = versions.map((v, oi) => ({ v, oi }));
   const sm = state.pkgSort.dir === 'asc' ? 1 : -1;
   const sc = state.pkgSort.col;
@@ -534,101 +495,73 @@ function renderPackage() {
     });
   }
 
-  app.appendChild(el('div', { className: 'section-title' }, 'All versions'));
-  const thead = el('tr', null,
-    sortHeader('Version', 'pkgSort', 'ver', 'left'),
-    sortHeader('Images', 'pkgSort', 'ic', 'right'),
-    ...allArchs.map(a => sortHeader(a, 'pkgSort', 'arch:' + a, 'right')),
-    sortHeader('Total', 'pkgSort', 'total', 'right'),
-  );
-  const tbody = el('tbody');
+  let html = `<button class="btn-back" onclick="navigate('summary')">\u2190 Back to list</button>
+  <h2 style="font-size:1.3rem;font-weight:700;margin:0 0 0.75rem">${esc(pkg.n)}</h2>
+  <div class="stat-strip">
+    ${statBox(pkg.vc, 'Versions')}
+    ${statBox(fmtSize(pkg.avg), 'Avg total size')}
+    ${statBox(fmtSize(pkg.lt), 'Latest: ' + pkg.lv, 'info')}
+    ${statBox(pkg.li, 'Images (latest)')}
+  </div>
+  <div class="section-title">Total size over releases (all architectures combined)</div>
+  <div class="section-sub">Source: fbc-size-analyzer, compressed layer sizes</div>
+  <div class="chart-card"><canvas id="lineChart" style="height:280px"></canvas></div>`;
+
+  if (allArchs.length > 1) {
+    html += `<div class="section-title">Per-architecture breakdown over releases</div>
+    <div class="section-sub">Stacked bar: each color is one architecture</div>
+    <div class="chart-card"><canvas id="stackedBar" style="height:280px"></canvas></div>`;
+  }
+
+  html += `<div class="section-title">All versions</div>
+  <div class="table-wrap" style="max-height:500px"><table><thead><tr>
+    ${sortTh('Version', 'pkgSort', 'ver', false)}
+    ${sortTh('Images', 'pkgSort', 'ic', true)}
+    ${allArchs.map(a => sortTh(a, 'pkgSort', 'arch:' + a, true)).join('')}
+    ${sortTh('Total', 'pkgSort', 'total', true)}
+  </tr></thead><tbody>`;
+
   indexed.forEach(({ v, oi }) => {
-    const link = el('a', { className: 'link', onClick: () => navigate('version', pkg.n, oi) }, v.v);
-    tbody.appendChild(el('tr', null,
-      el('td', null, link),
-      el('td', { className: 'r' }, v.ic.toString()),
-      ...allArchs.map(arch => {
-        const idx = v.ar.indexOf(arch);
-        return el('td', { className: 'r' }, fmtSize(idx >= 0 ? v.as[idx] : 0));
-      }),
-      el('td', { className: 'r', style: { fontWeight: 600 } }, fmtSize(v.ts)),
-    ));
+    html += `<tr>
+      <td><a class="link" onclick="navigate('version','${esc(pkg.n)}',${oi})">${esc(v.v)}</a></td>
+      <td class="num">${v.ic}</td>`;
+    allArchs.forEach(arch => {
+      const idx = v.ar.indexOf(arch);
+      html += `<td class="num">${fmtSize(idx >= 0 ? v.as[idx] : 0)}</td>`;
+    });
+    html += `<td class="num" style="font-weight:600">${fmtSize(v.ts)}</td></tr>`;
   });
-  app.appendChild(el('div', { className: 'table-wrap', style: { maxHeight: '500px' } },
-    el('table', null, el('thead', null, thead), tbody)
-  ));
+  html += '</tbody></table></div>';
+  document.getElementById('app').innerHTML = html;
+
+  requestAnimationFrame(() => {
+    const lc = document.getElementById('lineChart');
+    if (lc) makeLineChart(lc, chartVs.map(v => v.v),
+      [{ name: 'Total all-arch (GB)', data: chartVs.map(v => +(v.ts / 1073741824).toFixed(1)) }],
+      { fill: true, suffix: ' GB' });
+    const sc = document.getElementById('stackedBar');
+    if (sc) makeBarChart(sc, chartVs.map(v => v.v),
+      allArchs.map(arch => ({
+        name: arch,
+        data: chartVs.map(v => { const idx = v.ar.indexOf(arch); return idx >= 0 ? +(v.as[idx] / 1073741824).toFixed(1) : 0; }),
+      })),
+      { stacked: true, suffix: ' GB' });
+  });
 }
 
 function renderVersion() {
   destroyCharts();
-  const app = document.getElementById('app');
-  app.innerHTML = '';
-
   const pkg = RAW.pkgs.find(p => p.n === state.pkgName);
   if (!pkg) { navigate('summary'); return; }
   const ver = pkg.vs[state.verIdx];
   if (!ver) { navigate('package', pkg.n); return; }
   const arches = ver.ar;
-
   const images = ver.im.map(row => ({
     repo: RAW.repos[row[0]], total: row[1],
     perArch: arches.map((_, ai) => row[2 + ai] || 0),
   }));
-
   const archTotals = arches.map((_, ai) => images.reduce((s, img) => s + img.perArch[ai], 0));
 
-  app.appendChild(el('button', { className: 'btn-back', onClick: () => navigate('package', pkg.n) },
-    '\u2190 Back to ' + pkg.n));
-  app.appendChild(el('h1', { style: { fontSize: '20px', fontWeight: 700, marginBottom: '16px' } },
-    pkg.n + ' ' + ver.v));
-
-  const statCols = [statCard(ver.ic, 'Images')];
-  arches.forEach((a, i) => statCols.push(statCard(fmtSize(archTotals[i]), a)));
-  statCols.push(statCard(fmtSize(ver.ts), 'Total (all arch)', 'info'));
-  app.appendChild(el('div', { className: 'stats-grid' }, ...statCols));
-
-  if (arches.length > 1) {
-    const chartRow = el('div', { className: 'chart-row' });
-    const leftWrap = el('div', null,
-      el('div', { className: 'section-title' }, 'Architecture comparison'),
-      el('div', { className: 'section-sub' }, 'Total compressed size per architecture'),
-      el('div', { className: 'chart-wrap' }, el('canvas', { id: 'archBar', style: { height: '220px' } })),
-    );
-    const rightWrap = el('div', null,
-      el('div', { className: 'section-title' }, 'Top 10 largest images'),
-      el('div', { className: 'section-sub' }, 'By total size across all architectures'),
-      el('div', { className: 'chart-wrap' }, el('canvas', { id: 'topBar', style: { height: '300px' } })),
-    );
-    chartRow.appendChild(leftWrap);
-    chartRow.appendChild(rightWrap);
-    app.appendChild(chartRow);
-
-    requestAnimationFrame(() => {
-      const ac = document.getElementById('archBar');
-      if (ac) makeBarChart(ac, arches,
-        [{ name: 'Compressed size (GB)', data: archTotals.map(s => +(s / 1073741824).toFixed(1)) }],
-        { suffix: ' GB' });
-      const tc = document.getElementById('topBar');
-      if (tc) makeBarChart(tc,
-        images.slice(0, 10).map(img => img.repo.split('/').pop()),
-        [{ name: 'Total size (GB)', data: images.slice(0, 10).map(img => +(img.total / 1073741824).toFixed(2)) }],
-        { horizontal: true, suffix: ' GB' });
-    });
-  } else {
-    app.appendChild(el('div', { className: 'section-title' }, 'Top 10 largest images'));
-    app.appendChild(el('div', { className: 'section-sub' }, 'By total size across all architectures'));
-    const topWrap = el('div', { className: 'chart-wrap' }, el('canvas', { id: 'topBar', style: { height: '300px' } }));
-    app.appendChild(topWrap);
-    requestAnimationFrame(() => {
-      const tc = document.getElementById('topBar');
-      if (tc) makeBarChart(tc,
-        images.slice(0, 10).map(img => img.repo.split('/').pop()),
-        [{ name: 'Total size (GB)', data: images.slice(0, 10).map(img => +(img.total / 1073741824).toFixed(2)) }],
-        { horizontal: true, suffix: ' GB' });
-    });
-  }
-
-  // Images table
   const sorted = images.map((img, i) => ({ img, i }));
   const sm = state.imgSort.dir === 'asc' ? 1 : -1;
   const sc = state.imgSort.col;
@@ -639,93 +572,72 @@ function renderVersion() {
     if (ai >= 0) sorted.sort((a, b) => sm * (a.img.perArch[ai] - b.img.perArch[ai]));
   }
 
-  app.appendChild(el('div', { className: 'section-title' }, 'All images (' + ver.ic + ')'));
-  const thead = el('tr', null,
-    el('th', { className: 'r' }, '#'),
-    sortHeader('Repository', 'imgSort', 'repo', 'left'),
-    ...arches.map(a => sortHeader(a, 'imgSort', 'arch:' + a, 'right')),
-    sortHeader('Total', 'imgSort', 'total', 'right'),
-  );
-  const tbody = el('tbody');
+  let html = `<button class="btn-back" onclick="navigate('package','${esc(pkg.n)}')">\u2190 Back to ${esc(pkg.n)}</button>
+  <h2 style="font-size:1.3rem;font-weight:700;margin:0 0 0.75rem">${esc(pkg.n)} ${esc(ver.v)}</h2>
+  <div class="stat-strip">
+    ${statBox(ver.ic, 'Images')}
+    ${arches.map((a, i) => statBox(fmtSize(archTotals[i]), a)).join('')}
+    ${statBox(fmtSize(ver.ts), 'Total (all arch)', 'info')}
+  </div>`;
+
+  if (arches.length > 1) {
+    html += `<div class="chart-row">
+      <div>
+        <div class="section-title">Architecture comparison</div>
+        <div class="section-sub">Total compressed size per architecture</div>
+        <div class="chart-card"><canvas id="archBar" style="height:220px"></canvas></div>
+      </div>
+      <div>
+        <div class="section-title">Top 10 largest images</div>
+        <div class="section-sub">By total size across all architectures</div>
+        <div class="chart-card"><canvas id="topBar" style="height:300px"></canvas></div>
+      </div>
+    </div>`;
+  } else {
+    html += `<div class="section-title">Top 10 largest images</div>
+    <div class="section-sub">By total size across all architectures</div>
+    <div class="chart-card"><canvas id="topBar" style="height:300px"></canvas></div>`;
+  }
+
+  html += `<div class="section-title">All images (${ver.ic})</div>
+  <div class="table-wrap" style="max-height:600px"><table><thead><tr>
+    <th class="num">#</th>
+    ${sortTh('Repository', 'imgSort', 'repo', false)}
+    ${arches.map(a => sortTh(a, 'imgSort', 'arch:' + a, true)).join('')}
+    ${sortTh('Total', 'imgSort', 'total', true)}
+  </tr></thead><tbody>`;
+
   sorted.forEach(({ img }, i) => {
-    tbody.appendChild(el('tr', null,
-      el('td', { className: 'r' }, (i + 1).toString()),
-      el('td', { style: { maxWidth: '400px', overflow: 'hidden', textOverflow: 'ellipsis' } }, img.repo),
-      ...img.perArch.map(s => el('td', { className: 'r' }, fmtSize(s))),
-      el('td', { className: 'r', style: { fontWeight: 600 } }, fmtSize(img.total)),
-    ));
+    html += `<tr><td class="num">${i + 1}</td>
+      <td style="max-width:400px;overflow:hidden;text-overflow:ellipsis">${esc(img.repo)}</td>`;
+    img.perArch.forEach(s => { html += `<td class="num">${fmtSize(s)}</td>`; });
+    html += `<td class="num" style="font-weight:600">${fmtSize(img.total)}</td></tr>`;
   });
-  app.appendChild(el('div', { className: 'table-wrap' },
-    el('table', null, el('thead', null, thead), tbody)
-  ));
-}
+  html += '</tbody></table></div>';
+  document.getElementById('app').innerHTML = html;
 
-function statCard(value, label, tone) {
-  const valDiv = el('div', { className: 'stat-value' + (tone ? ' ' + tone : '') }, String(value));
-  const labDiv = el('div', { className: 'stat-label' }, label);
-  return el('div', { className: 'stat-card' }, valDiv, labDiv);
-}
-
-// --- Theme ---
-function getEffectiveTheme() {
-  const t = document.documentElement.getAttribute('data-theme');
-  if (t) return t;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-function cycleTheme() {
-  const current = document.documentElement.getAttribute('data-theme');
-  let next;
-  if (!current) next = getEffectiveTheme() === 'dark' ? 'light' : 'dark';
-  else if (current === 'dark') next = 'light';
-  else { document.documentElement.removeAttribute('data-theme'); updateThemeBtn(); render(); return; }
-  document.documentElement.setAttribute('data-theme', next);
-  updateThemeBtn();
-  render();
-}
-
-function updateThemeBtn() {
-  const btn = document.getElementById('themeBtn');
-  if (!btn) return;
-  const t = getEffectiveTheme();
-  btn.textContent = t === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19';
-  btn.title = t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+  requestAnimationFrame(() => {
+    const ac = document.getElementById('archBar');
+    if (ac) makeBarChart(ac, arches,
+      [{ name: 'Compressed size (GB)', data: archTotals.map(s => +(s / 1073741824).toFixed(1)) }],
+      { suffix: ' GB' });
+    const tc = document.getElementById('topBar');
+    if (tc) makeBarChart(tc,
+      images.slice(0, 10).map(img => img.repo.split('/').pop()),
+      [{ name: 'Total size (GB)', data: images.slice(0, 10).map(img => +(img.total / 1073741824).toFixed(2)) }],
+      { horizontal: true, suffix: ' GB' });
+  });
 }
 
 // --- Render dispatcher ---
 function render() {
-  const app = document.getElementById('app');
-
-  // Top bar (rebuild each time for simplicity)
-  const topBar = el('div', { className: 'top-bar' },
-    el('h1', null, 'Operator Related Image Sizes Explorer'),
-    el('span', { className: 'meta' }, 'Red Hat operator catalog v4.21'),
-    REPO_URL ? el('a', { className: 'gh-link', href: REPO_URL, target: '_blank', title: 'View on GitHub' },
-      ghSvg()) : null,
-    el('button', { className: 'theme-btn', id: 'themeBtn', onClick: cycleTheme }),
-  );
-
   if (state.view === 'summary') renderSummary();
   else if (state.view === 'package') renderPackage();
   else if (state.view === 'version') renderVersion();
-
-  app.prepend(topBar);
-  updateThemeBtn();
 }
 
-function ghSvg() {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 16 16');
-  svg.setAttribute('width', '22');
-  svg.setAttribute('height', '22');
-  svg.setAttribute('fill', 'currentColor');
-  svg.innerHTML = '<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>';
-  return svg;
-}
-
-// Boot
+initTheme();
 render();
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
 </script>
 </body>
 </html>
