@@ -1,0 +1,21 @@
+# Build artifacts
+fbc-size-analyzer
+*.exe
+
+# Intermediate / generated data
+.fbc-size-cache.json
+.chartjs-cache.js
+canvas-data.json
+compact.json
+compact3.json
+sizes.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+requirements.txt
+
+# OS
+.DS_Store
