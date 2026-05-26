@@ -784,13 +784,14 @@ func analyze(
 				Package:    pkgName,
 				BundleName: b.Name,
 				Version:    extractVersion(b.Name, pkgName),
-				ImageCount: len(b.RelatedImages),
 				ArchTotals: make(archSizes),
 			}
+			seen := make(map[string]bool)
 			for _, img := range b.RelatedImages {
-				if img.Image == "" {
+				if img.Image == "" || seen[img.Image] {
 					continue
 				}
+				seen[img.Image] = true
 				sizes := imageSizes[img.Image]
 				_, repo, _, _ := parseImageRef(img.Image)
 				var total int64
@@ -814,6 +815,7 @@ func analyze(
 					}
 				}
 			}
+			br.ImageCount = len(br.Images)
 			for _, s := range br.ArchTotals {
 				br.TotalSize += s
 			}
