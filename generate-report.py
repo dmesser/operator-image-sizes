@@ -66,6 +66,8 @@ def compact_data(data):
 
     return {"repos": repo_table, "refs": ref_table, "pkgs": compact, "meta": {
         "package_count": data.get("package_count", len(data["packages"])),
+        "catalog": data.get("catalog", ""),
+        "analyzed_at": data.get("analyzed_at", ""),
     }}
 
 
@@ -286,8 +288,14 @@ if (REPO_URL) {
   ghLink.href = REPO_URL;
   ghLink.style.display = 'flex';
 }
-document.getElementById('header-meta').textContent =
-  'Red Hat operator catalog v4.21 \u00b7 ' + RAW.pkgs.length + ' operators';
+{
+  const cat = RAW.meta.catalog || '';
+  const m = cat.match(/v(\\d+\\.\\d+)/);
+  const ver = m ? 'v' + m[1] : cat.split('/').pop().replace(/\\.json$/, '');
+  const when = RAW.meta.analyzed_at ? ' \\u00b7 ' + new Date(RAW.meta.analyzed_at).toLocaleDateString(undefined, {year:'numeric',month:'short',day:'numeric'}) : '';
+  document.getElementById('header-meta').textContent =
+    'Red Hat operator catalog ' + ver + ' \\u00b7 ' + RAW.pkgs.length + ' operators' + when;
+}
 
 // --- Theme ---
 function applyTheme(mode) {
