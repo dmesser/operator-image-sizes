@@ -779,7 +779,25 @@ func analyze(
 	var pkgResults []packageResult
 	for pkgName, bundles := range packages {
 		pr := packageResult{Name: pkgName}
+
+		// Keep only the latest bundle per extracted version.
+		// Bundles are already sorted by name ascending, so the last one
+		// for each version is the most recent respin (e.g. timestamp .p rebuild).
+		latestByVersion := make(map[string]fbcEntry)
+		versionOrder := make([]string, 0)
 		for _, b := range bundles {
+			ver := extractVersion(b.Name, pkgName)
+			if _, exists := latestByVersion[ver]; !exists {
+				versionOrder = append(versionOrder, ver)
+			}
+			latestByVersion[ver] = b
+		}
+		dedupBundles := make([]fbcEntry, 0, len(versionOrder))
+		for _, v := range versionOrder {
+			dedupBundles = append(dedupBundles, latestByVersion[v])
+		}
+
+		for _, b := range dedupBundles {
 			br := bundleResult{
 				Package:    pkgName,
 				BundleName: b.Name,
