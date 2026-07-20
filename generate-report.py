@@ -290,11 +290,11 @@ if (REPO_URL) {
 }
 {
   const cat = RAW.meta.catalog || '';
-  const m = cat.match(/v(\\d+\\.\\d+)/);
-  const ver = m ? 'v' + m[1] : cat.split('/').pop().replace(/\\.json$/, '');
-  const when = RAW.meta.analyzed_at ? ' \\u00b7 ' + new Date(RAW.meta.analyzed_at).toLocaleDateString(undefined, {year:'numeric',month:'short',day:'numeric'}) : '';
+  const m = cat.match(/v(\d+\.\d+)/);
+  const ver = m ? 'v' + m[1] : cat.split('/').pop().replace(/\.json$/, '');
+  const when = RAW.meta.analyzed_at ? ' \u00b7 ' + new Date(RAW.meta.analyzed_at).toLocaleDateString(undefined, {year:'numeric',month:'short',day:'numeric'}) : '';
   document.getElementById('header-meta').textContent =
-    'Red Hat operator catalog ' + ver + ' \\u00b7 ' + RAW.pkgs.length + ' operators' + when;
+    'Red Hat operator catalog ' + ver + ' \u00b7 ' + RAW.pkgs.length + ' operators' + when;
 }
 
 // --- Theme ---
