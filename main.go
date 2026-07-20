@@ -482,9 +482,6 @@ func (rc *registryClient) getImageSizes(imageRef string) (archSizes, error) {
 				continue
 			}
 			key := arch
-			if desc.Platform.Variant != "" {
-				key += "/" + desc.Platform.Variant
-			}
 			child, _, err := rc.fetchManifest(registry, repository, desc.Digest, acceptSingle)
 			if err != nil {
 				sizes[key] = -1
