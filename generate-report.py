@@ -13,12 +13,20 @@ CHARTJS_CACHE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".chart
 def compact_data(data):
     repo_table = []
     repo_idx = {}
+    ref_table = []
+    ref_idx = {}
 
     def get_repo_id(name):
         if name not in repo_idx:
             repo_idx[name] = len(repo_table)
             repo_table.append(name)
         return repo_idx[name]
+
+    def get_ref_id(ref):
+        if ref not in ref_idx:
+            ref_idx[ref] = len(ref_table)
+            ref_table.append(ref)
+        return ref_idx[ref]
 
     compact = []
     for p in sorted(data["packages"], key=lambda x: -x["avg_total_size"]):
@@ -44,7 +52,11 @@ def compact_data(data):
             }
             for img in sorted_imgs:
                 img_arches = img.get("architectures", {})
-                row = [get_repo_id(img["repository"]), img["total_size"]]
+                img_name = img.get("name", "")
+                img_ref = img.get("image", "")
+                # row: [repoId, totalSize, refId, name, arch1size, arch2size, ...]
+                row = [get_repo_id(img["repository"]), img["total_size"],
+                       get_ref_id(img_ref), img_name]
                 for a in arches:
                     arch_data = img_arches.get(a)
                     row.append(arch_data["size"] if isinstance(arch_data, dict) else 0)
@@ -52,7 +64,7 @@ def compact_data(data):
             cp["vs"].append(cv)
         compact.append(cp)
 
-    return {"repos": repo_table, "pkgs": compact, "meta": {
+    return {"repos": repo_table, "refs": ref_table, "pkgs": compact, "meta": {
         "package_count": data.get("package_count", len(data["packages"])),
     }}
 
@@ -219,6 +231,24 @@ tbody tr:hover { background: var(--summary-hover); }
   th, td { padding: 0.3rem 0.35rem; font-size: 0.75rem; }
   .chart-row { flex-direction: column; }
 }
+.img-name-cell { display: inline-flex; align-items: center; gap: 0.35rem; max-width: 100%; }
+.img-name-cell .name-text {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  cursor: default;
+}
+.btn-copy {
+  background: none; border: 1px solid var(--border); border-radius: 4px;
+  color: var(--fg); cursor: pointer; padding: 1px 5px; font-size: 0.7rem;
+  line-height: 1.2; opacity: 0.6; flex-shrink: 0;
+}
+.btn-copy:hover { opacity: 1; background: var(--accent); color: var(--accent-fg); }
+.btn-copy.copied { opacity: 1; background: #22c55e; color: #fff; border-color: #22c55e; }
+.toggle-row {
+  display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;
+  font-size: 0.8rem; color: var(--muted-fg);
+}
+.toggle-row label { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 0.35rem; }
+.col-imgurl { max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.75rem; }
 </style>
 </head>
 <body>
@@ -291,7 +321,7 @@ function fmtSize(b) {
   }
   return v.toFixed(1)+' PB';
 }
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function cmpSemver(a, b) {
   const re = /(\d+)/g;
   const pa = a.match(re) || [], pb = b.match(re) || [];
@@ -385,6 +415,7 @@ let state = { view: 'summary', pkgName: null, verIdx: null, search: '',
   sumSort: { col: 'avg', dir: 'desc' },
   pkgSort: { col: 'ver', dir: 'desc' },
   imgSort: { col: 'total', dir: 'desc' },
+  showImgUrl: false,
 };
 
 function navigate(view, pkgName, verIdx) {
@@ -549,6 +580,19 @@ function renderPackage() {
   });
 }
 
+function copyPullSpec(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.classList.add('copied');
+    btn.textContent = 'copied';
+    setTimeout(() => { btn.classList.remove('copied'); btn.textContent = 'copy'; }, 1500);
+  });
+}
+
+function toggleImgUrlCol() {
+  state.showImgUrl = !state.showImgUrl;
+  renderVersion();
+}
+
 function renderVersion() {
   destroyCharts();
   const pkg = RAW.pkgs.find(p => p.n === state.pkgName);
@@ -556,16 +600,21 @@ function renderVersion() {
   const ver = pkg.vs[state.verIdx];
   if (!ver) { navigate('package', pkg.n); return; }
   const arches = ver.ar;
+  // row: [repoId, totalSize, refId, name, arch1size, ...]
   const images = ver.im.map(row => ({
     repo: RAW.repos[row[0]], total: row[1],
-    perArch: arches.map((_, ai) => row[2 + ai] || 0),
+    ref: RAW.refs[row[2]], name: row[3] || '',
+    perArch: arches.map((_, ai) => row[4 + ai] || 0),
   }));
   const archTotals = arches.map((_, ai) => images.reduce((s, img) => s + img.perArch[ai], 0));
+  const showUrl = !!state.showImgUrl;
 
   const sorted = images.map((img, i) => ({ img, i }));
   const sm = state.imgSort.dir === 'asc' ? 1 : -1;
   const sc = state.imgSort.col;
-  if (sc === 'repo') sorted.sort((a, b) => sm * a.img.repo.localeCompare(b.img.repo));
+  if (sc === 'name') sorted.sort((a, b) => sm * (a.img.name || a.img.repo).localeCompare(b.img.name || b.img.repo));
+  else if (sc === 'repo') sorted.sort((a, b) => sm * a.img.repo.localeCompare(b.img.repo));
+  else if (sc === 'ref') sorted.sort((a, b) => sm * (a.img.ref || '').localeCompare(b.img.ref || ''));
   else if (sc === 'total') sorted.sort((a, b) => sm * (a.img.total - b.img.total));
   else if (sc.startsWith('arch:')) {
     const ai = arches.indexOf(sc.slice(5));
@@ -600,16 +649,26 @@ function renderVersion() {
   }
 
   html += `<div class="section-title">All images (${ver.ic})</div>
+  <div class="toggle-row"><label><input type="checkbox" ${showUrl ? 'checked' : ''} onchange="toggleImgUrlCol()"> Show full image URL column</label></div>
   <div class="table-wrap" style="max-height:600px"><table><thead><tr>
     <th class="num">#</th>
-    ${sortTh('Repository', 'imgSort', 'repo', false)}
+    ${sortTh('Image', 'imgSort', 'name', false)}
+    ${showUrl ? sortTh('Image URL', 'imgSort', 'ref', false) : ''}
     ${arches.map(a => sortTh(a, 'imgSort', 'arch:' + a, true)).join('')}
     ${sortTh('Total', 'imgSort', 'total', true)}
   </tr></thead><tbody>`;
 
   sorted.forEach(({ img }, i) => {
-    html += `<tr><td class="num">${i + 1}</td>
-      <td style="max-width:400px;overflow:hidden;text-overflow:ellipsis">${esc(img.repo)}</td>`;
+    const displayName = img.name || img.repo;
+    const hasName = !!img.name;
+    let nameCell;
+    if (hasName) {
+      nameCell = `<td style="max-width:400px"><span class="img-name-cell"><span class="name-text" title="${esc(img.ref)}">${esc(displayName)}</span><button class="btn-copy" onclick="copyPullSpec(this,'${esc(img.ref)}')" title="Copy image pull spec">copy</button></span></td>`;
+    } else {
+      nameCell = `<td style="max-width:400px;overflow:hidden;text-overflow:ellipsis" title="${esc(img.ref)}">${esc(displayName)}</td>`;
+    }
+    html += `<tr><td class="num">${i + 1}</td>${nameCell}`;
+    if (showUrl) html += `<td class="col-imgurl" title="${esc(img.ref)}">${esc(img.ref)}</td>`;
     img.perArch.forEach(s => { html += `<td class="num">${fmtSize(s)}</td>`; });
     html += `<td class="num" style="font-weight:600">${fmtSize(img.total)}</td></tr>`;
   });
@@ -623,7 +682,7 @@ function renderVersion() {
       { suffix: ' GB' });
     const tc = document.getElementById('topBar');
     if (tc) makeBarChart(tc,
-      images.slice(0, 10).map(img => img.repo.split('/').pop()),
+      images.slice(0, 10).map(img => (img.name || img.repo).split('/').pop()),
       [{ name: 'Total size (GB)', data: images.slice(0, 10).map(img => +(img.total / 1073741824).toFixed(2)) }],
       { horizontal: true, suffix: ' GB' });
   });
